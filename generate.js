@@ -76,6 +76,7 @@ async function generate() {
       groupedOrders.push({
         id: ticket.id,
         uuid: ticket.uuid,
+        name: ticket.name,
         email: ticket.email,
         tickets: [
           {
@@ -120,7 +121,7 @@ async function generate() {
 
         ticketTemplate = ticketTemplate.replace(`[NAME]`, `${order.name}`);
         ticketTemplate = ticketTemplate.replace(`[UUID]`, `${order.uuid}`);
-        ticketTemplate = ticketTemplate.replace(`[PRICE]`, `${getPrice(ticket.section) ? '€' + getPrice(ticket.section) : '-'}`);
+        ticketTemplate = ticketTemplate.replace(`[PRICE]`, `${getPrice(ticket.section) ? '€ ' + getPrice(ticket.section) : '-'}`);
 
 
         const qrCode = await qrcode.toDataURL(ticket.scanCode);
