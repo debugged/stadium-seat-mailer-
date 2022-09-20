@@ -22,9 +22,12 @@ async function bootstrap() {
 
 
   const emailsDirectories = await getDirectories(INPUT);
-  for(const emailDirectory of emailsDirectories) {
-    await processEmail(emailDirectory)
-  }
+
+  console.log(emailsDirectories.length)
+
+  // for(const emailDirectory of emailsDirectories) {
+  //   await processEmail(emailDirectory)
+  // }
 }
 
 async function getDirectories(path) {
