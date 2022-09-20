@@ -4,7 +4,6 @@ import { MailService } from '@sendgrid/mail';
 import { Connection } from 'typeorm';
 import { SendEmailEntity } from './order.entity';
 import { glob } from 'glob';
-import * as mv from 'mv';
 
 import * as path from 'path';
 import * as fs from 'fs';
@@ -13,7 +12,6 @@ let connection: Connection;
 let mailService: MailService;
 
 const INPUT = 'input';
-const OUTPUT = 'output';
 const TEMPLATE = fs.readFileSync(path.join(__dirname, `../email.txt`), 'utf-8');
 
 
@@ -47,19 +45,6 @@ async function globDir(path: string) {
   });
 }
 
-async function moveFile(input: string, output: string) {
-  return new Promise((resolve, reject) => {
-    mv(input, output, {mkdirp: true}, function(err) {
-      if(err) {
-        reject(err);
-      }else {
-        resolve("");
-      }
-    });
-  });
-}
-
-
 async function processEmail(processEmail: string) {
   return connection.transaction(async entityManager => {
     const repo = entityManager.getRepository(SendEmailEntity);
@@ -85,11 +70,6 @@ async function processEmail(processEmail: string) {
         disposition: "attachment"
       }
     }));
-
-    const outputDir = path.join(__dirname, `../${OUTPUT}/${processEmail}`);
-    for(const ticketFile of orderFiles) {
-      await moveFile(ticketFile, path.join(outputDir, path.basename(ticketFile)));
-    }
 
     const msg = {
       to: 'kyle@debugged.nl',

@@ -141,7 +141,7 @@ async function generate() {
     } 
 
     await new Promise((resolve, reject) => {
-      fs.writeFile(`input/${order.email.toLowerCase()}/order-${order.id}.pdf`, data, (err) => {
+      fs.writeFile(`input/${order.email.toLowerCase()}/${order.name}.pdf`, data, (err) => {
         if (err) return reject(err);
         resolve(null);
       });
