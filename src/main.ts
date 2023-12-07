@@ -12,7 +12,7 @@ let connection: Connection;
 let mailService: MailService;
 
 const INPUT = 'input';
-const TEMPLATE = fs.readFileSync(path.join(__dirname, `../email.txt`), 'utf-8');
+const TEMPLATE = fs.readFileSync(path.join(__dirname, `../email.html`), 'utf-8');
 
 
 async function bootstrap() {
@@ -22,12 +22,9 @@ async function bootstrap() {
 
 
   const emailsDirectories = await getDirectories(INPUT);
-
-  console.log(emailsDirectories.length)
-
-  // for(const emailDirectory of emailsDirectories) {
-  //   await processEmail(emailDirectory)
-  // }
+  for(const emailDirectory of emailsDirectories) {
+    await processEmail(emailDirectory);
+  }
 }
 
 async function getDirectories(path) {
@@ -56,10 +53,12 @@ async function processEmail(processEmail: string) {
       email: processEmail
     }});
 
-    if(foundEmail !== undefined) {
+    if(foundEmail !== null) {
       console.log('email already send')
       return;
     }
+
+    await new Promise(r => setTimeout(r, 3000));
     
     const sendEmail = new SendEmailEntity();
     sendEmail.email = processEmail;
@@ -74,20 +73,20 @@ async function processEmail(processEmail: string) {
       }
     }));
 
+
     const msg = {
-      to: 'kyle@debugged.nl',
-      from: { email: 'info@ticketapp.nl', name: '' },
-      subject: '',
+      to: processEmail,
+      from: { email: 'no-reply@ticketapp.nl', name: "Ticketapp - That's the Spirit" },
+      subject: "Jouw tickets voor That's the Spirit - TALK XXL",
       html: TEMPLATE,
       attachments: [
         ...tickets
       ]
     };
-
     await mailService.send(msg);
     await repo.save(sendEmail);
-
-    console.log(`tickets from ${sendEmail} send`);
+   
+    console.log(`tickets from ${processEmail} send`);
   })
 }
-bootstrap().then(() => console.log("DONE!")).catch(error => console.log(error));
+bootstrap().then(() => console.log("DONE!")).catch(error => console.log(error.response.body));

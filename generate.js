@@ -63,8 +63,9 @@ const getPrice = (section) => {
 async function generate() {
   const data = await csv({delimiter: [',']}).fromFile(path.join(__dirname, `tickets.csv`));
   const groupedOrders = [];
+
   data.forEach((ticket) => {
-    const groupedOrderIndex = groupedOrders.findIndex((o) => o.id === ticket.id);
+    const groupedOrderIndex = groupedOrders.findIndex((o) => o.uuid === ticket.uuid);
     if (groupedOrderIndex !== -1) {
       groupedOrders[groupedOrderIndex].tickets.push({
         scanCode: ticket.scanCode,
@@ -90,34 +91,22 @@ async function generate() {
     }
   });
 
-  if (!fs.existsSync(`input`)) {
-    fs.mkdirSync(`input`);
-  } else {
-    fs.rmSync('input', { recursive: true, force: true })
-    fs.mkdirSync(`input`);
-  }
-
-  if (!fs.existsSync(`output`)) {
-    fs.mkdirSync(`output`);
-  } else {
-    fs.rmSync('output', { recursive: true, force: true })
-    fs.mkdirSync(`output`);
-  }
-
   const basisHTML = fs.readFileSync(path.join(__dirname, "assets/base.html"), "utf8");
   const ticketHTML = fs.readFileSync(path.join(__dirname, "assets/ticket.html"), "utf8");
   const browser = await puppeteer.launch();
 
+  console.log('generating', groupedOrders.length, 'orders')
+  
   for(const order of groupedOrders) {
     const page = await browser.newPage();
     const baseTemplate = `${basisHTML}`
     const tickets = await Promise.all(
       order.tickets.map(async (ticket) => {
         let ticketTemplate = `${ticketHTML}`;
-        ticketTemplate = ticketTemplate.replace(`[ROOM]`, `${ticket.section}`);
+        ticketTemplate = ticketTemplate.replace(`[TICKET]`, `${ticket.section}`);
         ticketTemplate = ticketTemplate.replace(`[ROW]`, `${ticket.row}`);
         ticketTemplate = ticketTemplate.replace(`[SEAT]`, `${ticket.seat}`);
-        ticketTemplate = ticketTemplate.replace(`[ENTRENCE]`, getEntrance(ticket.section, ticket.seat));
+        ticketTemplate = ticketTemplate.replace(`[ENTRANCE_ROOM]`, getEntrance(ticket.section, ticket.seat));
 
         ticketTemplate = ticketTemplate.replace(`[NAME]`, `${order.name}`);
         ticketTemplate = ticketTemplate.replace(`[UUID]`, `${order.uuid}`);
@@ -141,7 +130,7 @@ async function generate() {
     } 
 
     await new Promise((resolve, reject) => {
-      fs.writeFile(`input/${order.email.toLowerCase()}/${order.name}.pdf`, data, (err) => {
+      fs.writeFile(`input/${order.email.toLowerCase()}/tickets_${order.uuid}.pdf`, data, (err) => {
         if (err) return reject(err);
         resolve(null);
       });
